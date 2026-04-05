@@ -1,0 +1,13 @@
+{
+  "name": "alsh-logo-generator",
+  "version": "1.0.0",
+  "description": "Generate a transparent AlSH.ai text logo PNG with manual spacing control",
+  "main": "make-logo.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node make-logo.js"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2"
+  }
+}
