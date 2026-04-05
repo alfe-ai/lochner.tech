@@ -44,6 +44,7 @@ async function main() {
   const svg = `\n    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">\n      <path d="${d}" fill="#FFFFFF"/>\n    </svg>\n  `;
 
   await fs.writeFile(path.join(__dirname, "explora-l.svg"), svg, "utf8");
+  await fs.writeFile(path.join(__dirname, "alsh-logo.svg"), svg, "utf8");
 
   const resvg = new Resvg(svg, {
     fitTo: {
@@ -54,8 +55,11 @@ async function main() {
 
   const pngBuffer = resvg.render().asPng();
   await fs.writeFile(path.join(__dirname, "explora-l.png"), pngBuffer);
+  await fs.writeFile(path.join(__dirname, "alsh-logo.png"), pngBuffer);
 
-  console.log("Wrote explora-l.svg and explora-l.png");
+  console.log(
+    "Wrote explora-l.svg/png and alsh-logo.svg/png"
+  );
 }
 
 main().catch((err) => {
