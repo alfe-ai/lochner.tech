@@ -106,7 +106,7 @@ const PARTS = [
   // Increased size so the thin strokes still feel substantial.
   // Extra spacing after it so it does not crowd the S.
   {
-    text: "ℒ",
+    text: "L",
     fontSize: 360,
     dx: 28,
     family: hasExplora ? EXPLORA_FAMILY : "Times New Roman",
