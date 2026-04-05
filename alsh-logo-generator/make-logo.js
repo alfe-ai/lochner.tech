@@ -1,65 +1,97 @@
 // make-logo.js
-// Generates a transparent curved L from Explora without canvas/pango.
+// Generates ALSH logo assets with an Explora "L" and straight sans "AHS".
 
 const fs = require("fs/promises");
 const path = require("path");
 const opentype = require("opentype.js");
 const { Resvg } = require("@resvg/resvg-js");
 
-const WIDTH = 900;
+const WIDTH = 1400;
 const HEIGHT = 900;
-const FONT_SIZE = 620;
 
-async function main() {
-  const fontPath = path.join(__dirname, "fonts", "Explora-Regular.ttf");
+const CURVED_L_SIZE = 620;
+const STRAIGHT_SIZE = 300;
+
+const A_X = 90;
+const A_Y = 560;
+
+const L_X = 245;
+const L_Y = 700;
+
+const SH_X = 520;
+const SH_Y = 560;
+
+async function loadFont(fontPath) {
   const fontBuffer = await fs.readFile(fontPath);
-
-  // Convert Node Buffer -> exact ArrayBuffer slice for opentype.js
   const arrayBuffer = fontBuffer.buffer.slice(
     fontBuffer.byteOffset,
     fontBuffer.byteOffset + fontBuffer.byteLength
   );
 
-  const font = opentype.parse(arrayBuffer);
-  const glyph = font.charToGlyph("L");
+  return opentype.parse(arrayBuffer);
+}
 
-  if (!glyph) {
-    throw new Error('Could not find glyph for "L"');
+async function main() {
+  const curvedFontPath =
+    process.env.EXPLORA_FONT_PATH ||
+    path.join(__dirname, "fonts", "Explora-Regular.ttf");
+
+  const straightFontPath =
+    process.env.STRAIGHT_FONT_PATH ||
+    path.join(__dirname, "..", "assets", "fonts", "LochnerBrandSans-Regular.ttf");
+
+  const [curvedFont, straightFont] = await Promise.all([
+    loadFont(curvedFontPath),
+    loadFont(straightFontPath),
+  ]);
+
+  const lGlyph = curvedFont.charToGlyph("L");
+  if (!lGlyph) {
+    throw new Error('Could not find glyph for "L" in curved font');
   }
 
-  // Baseline placement
-  const x = 120;
-  const y = 700;
-
-  const glyphPath = glyph.getPath(x, y, FONT_SIZE);
-
-  // Build SVG path data. flipY helps convert font coordinates to SVG coords.
-  const d = glyphPath.toPathData({
+  const lPath = lGlyph.getPath(L_X, L_Y, CURVED_L_SIZE).toPathData({
     flipY: true,
-    flipYBase: y,
+    flipYBase: L_Y,
     optimize: true,
     decimalPlaces: 2,
   });
 
-  const svg = `\n    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">\n      <path d="${d}" fill="#FFFFFF"/>\n    </svg>\n  `;
+  const aPath = straightFont.getPath("A", A_X, A_Y, STRAIGHT_SIZE).toPathData({
+    flipY: true,
+    flipYBase: A_Y,
+    optimize: true,
+    decimalPlaces: 2,
+  });
 
-  await fs.writeFile(path.join(__dirname, "explora-l.svg"), svg, "utf8");
-  await fs.writeFile(path.join(__dirname, "alsh-logo.svg"), svg, "utf8");
+  const shPath = straightFont.getPath("SH", SH_X, SH_Y, STRAIGHT_SIZE).toPathData({
+    flipY: true,
+    flipYBase: SH_Y,
+    optimize: true,
+    decimalPlaces: 2,
+  });
 
-  const resvg = new Resvg(svg, {
-    fitTo: {
-      mode: "original",
-    },
+  const alshSvg = `\n    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">\n      <path d="${aPath}" fill="#FFFFFF"/>\n      <path d="${lPath}" fill="#FFFFFF"/>\n      <path d="${shPath}" fill="#FFFFFF"/>\n    </svg>\n  `;
+
+  const lSvg = `\n    <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">\n      <path d="${lPath}" fill="#FFFFFF"/>\n    </svg>\n  `;
+
+  await fs.writeFile(path.join(__dirname, "explora-l.svg"), lSvg, "utf8");
+  await fs.writeFile(path.join(__dirname, "alsh-logo.svg"), alshSvg, "utf8");
+
+  const alshResvg = new Resvg(alshSvg, {
+    fitTo: { mode: "original" },
     background: "rgba(0,0,0,0)",
   });
 
-  const pngBuffer = resvg.render().asPng();
-  await fs.writeFile(path.join(__dirname, "explora-l.png"), pngBuffer);
-  await fs.writeFile(path.join(__dirname, "alsh-logo.png"), pngBuffer);
+  const lResvg = new Resvg(lSvg, {
+    fitTo: { mode: "original" },
+    background: "rgba(0,0,0,0)",
+  });
 
-  console.log(
-    "Wrote explora-l.svg/png and alsh-logo.svg/png"
-  );
+  await fs.writeFile(path.join(__dirname, "alsh-logo.png"), alshResvg.render().asPng());
+  await fs.writeFile(path.join(__dirname, "explora-l.png"), lResvg.render().asPng());
+
+  console.log("Wrote alsh-logo.svg/png (A+L+SH) and explora-l.svg/png");
 }
 
 main().catch((err) => {

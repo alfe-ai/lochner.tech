@@ -1,27 +1,21 @@
 # ALSH Logo Generator
 
-## Get the Explora font
+Generates:
+- `alsh-logo.svg/png` with a curved Explora **L** plus straight sans **A** and **SH**
+- `explora-l.svg/png` with just the curved **L**
 
-The generator looks for the font file at:
+## Fonts
 
-- `./fonts/Explora-Regular.ttf` (relative to `alsh-logo-generator`)
+The generator looks for:
+- Curved L font: `./fonts/Explora-Regular.ttf` (relative to `alsh-logo-generator`)
+- Straight font: `../assets/fonts/LochnerBrandSans-Regular.ttf`
 
-Steps:
-
-1. Create the fonts directory:
-   ```bash
-   mkdir -p fonts
-   ```
-2. Download `Explora-Regular.ttf` from Google Fonts.
-3. Save it as:
-   ```text
-   alsh-logo-generator/fonts/Explora-Regular.ttf
-   ```
-
-You can also point to a font file anywhere on your system:
+You can override either path:
 
 ```bash
-EXPLORA_FONT_PATH=/absolute/path/to/Explora-Regular.ttf node make-logo.js
+EXPLORA_FONT_PATH=/absolute/path/to/Explora-Regular.ttf \
+STRAIGHT_FONT_PATH=/absolute/path/to/straight-font.ttf \
+node make-logo.js
 ```
 
 ## Run
@@ -30,5 +24,3 @@ EXPLORA_FONT_PATH=/absolute/path/to/Explora-Regular.ttf node make-logo.js
 npm install
 node make-logo.js
 ```
-
-If Explora is not available, the script now falls back to a local serif font and still generates the PNG.
