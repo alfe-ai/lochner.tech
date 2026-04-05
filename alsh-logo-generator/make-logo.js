@@ -33,7 +33,7 @@ const TEXT_COLOR = "#FFFFFF";
 
 const FONT_FAMILY = "Georgia";
 const FONT_WEIGHT = "700";
-const FONT_STYLE = "italic";
+const FONT_STYLE = "normal";
 
 const SIZE_MAIN = 320;
 const SIZE_AI = 250;
@@ -46,13 +46,13 @@ const BASELINE_Y = 520;
 const LETTER_SPACING = 10;
 const DOT_TO_AI_SPACING = 14;
 
-// Stylized "L" built from a lowercase "l" with a custom foot extension.
-const CURVY_L_FOOT = 120;
+// Stylized "L" built from a lowercase "l" with a curved custom foot extension.
+const CURVY_L_FOOT = 88;
 const CURVY_L_THICKNESS = 26;
 
 const PARTS = [
   { text: "A", fontSize: SIZE_MAIN, dx: 0 },
-  { kind: "curvyL", text: "l", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
+  { kind: "curvyL", text: "l", fontSize: SIZE_MAIN, dx: LETTER_SPACING, style: "italic" },
   { text: "S", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
   { text: "H", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
   { text: ".", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
@@ -131,13 +131,28 @@ for (let i = 0; i < PARTS.length; i++) {
     const glyphWidth = ctx.measureText(part.text).width;
     ctx.fillText(part.text, x, y);
 
-    // Extend the lowercase "l" into a distinct capital-L foot.
-    ctx.fillRect(
-      Math.round(x + glyphWidth - 4),
-      Math.round(y - CURVY_L_THICKNESS),
-      CURVY_L_FOOT,
-      CURVY_L_THICKNESS
+    // Extend the lowercase "l" into a distinct capital-L curved foot.
+    const footStartX = x + glyphWidth - 8;
+    const footY = y - CURVY_L_THICKNESS * 0.5;
+    const footEndX = footStartX + CURVY_L_FOOT;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = CURVY_L_THICKNESS;
+    ctx.moveTo(footStartX, footY);
+    ctx.bezierCurveTo(
+      footStartX + CURVY_L_FOOT * 0.2,
+      footY + CURVY_L_THICKNESS * 0.08,
+      footStartX + CURVY_L_FOOT * 0.72,
+      footY + CURVY_L_THICKNESS * 0.05,
+      footEndX,
+      footY
     );
+    ctx.strokeStyle = TEXT_COLOR;
+    ctx.stroke();
+    ctx.restore();
   } else {
     setFont(ctx, part);
     const stretchX = part.stretchX || 1;
