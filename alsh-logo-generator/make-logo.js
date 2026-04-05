@@ -12,6 +12,7 @@ const CURVED_L_SIZE = 620;
 const CURVED_L_SCALE = 0.66;
 const CURVED_L_TRANSLATE_X = 196;
 const CURVED_L_TRANSLATE_Y = 124;
+const CURVED_L_FAUX_BOLD_STROKE = 18;
 const STRAIGHT_SIZE = 300;
 
 const A_X = 120;
@@ -125,6 +126,7 @@ async function main() {
     decimalPlaces: 2,
   });
 
+<<<<<<< ours
   const lBounds = transformBounds(
     pathBounds(lPathObject),
     CURVED_L_SCALE,
@@ -159,6 +161,11 @@ async function main() {
       `<path d="${lPath}" fill="#FFFFFF" transform="translate(${CURVED_L_TRANSLATE_X} ${CURVED_L_TRANSLATE_Y}) scale(${CURVED_L_SCALE})"/>`,
     ],
   });
+=======
+  const alshSvg = `\n    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">\n      <path d="${aPath}" fill="#FFFFFF"/>\n      <path d="${lPath}" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="${CURVED_L_FAUX_BOLD_STROKE}" stroke-linejoin="round" stroke-linecap="round" transform="translate(${CURVED_L_TRANSLATE_X} ${CURVED_L_TRANSLATE_Y}) scale(${CURVED_L_SCALE})"/>\n      <path d="${shPath}" fill="#FFFFFF"/>\n      <path d="${dotAiPath}" fill="#FFFFFF"/>\n    </svg>\n  `;
+
+  const lSvg = `\n    <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">\n      <path d="${lPath}" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="${CURVED_L_FAUX_BOLD_STROKE}" stroke-linejoin="round" stroke-linecap="round" transform="translate(${CURVED_L_TRANSLATE_X} ${CURVED_L_TRANSLATE_Y}) scale(${CURVED_L_SCALE})"/>\n    </svg>\n  `;
+>>>>>>> theirs
 
   await fs.writeFile(path.join(__dirname, "explora-l.svg"), lSvg, "utf8");
   await fs.writeFile(path.join(__dirname, "alsh-logo.svg"), alshSvg, "utf8");
