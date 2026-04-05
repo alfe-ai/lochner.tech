@@ -1,7 +1,7 @@
 // make-logo.js
 //
 // Generate a transparent PNG logo for: AlSH.ai
-// with manual spacing so the lowercase `l` does NOT overlap the `S`.
+// with a stylized lowercase `l` to match website branding.
 //
 // Install:
 //   npm install
@@ -34,6 +34,7 @@ const TEXT_COLOR = "#FFFFFF";
 
 const FONT_FAMILY = "Arial";
 const FONT_WEIGHT = "700";
+const FONT_STYLE = "normal";
 
 const SIZE_MAIN = 320;
 const SIZE_AI = 250;
@@ -45,11 +46,13 @@ const BASELINE_Y = 520;
 // This is the whole point: move the `l` farther right from the `S`.
 const PARTS = [
   { text: "A", fontSize: SIZE_MAIN, dx: 0 },
-  { text: "l", fontSize: SIZE_MAIN, dx: 90 },   // increase this to push l farther from A/S region
-  { text: "S", fontSize: SIZE_MAIN, dx: 130 },  // spacing after l
-  { text: "H", fontSize: SIZE_MAIN, dx: 30 },
-  { text: ".", fontSize: SIZE_MAIN, dx: 10 },
-  { text: "ai", fontSize: SIZE_AI, dx: 20, yOffset: 8 }
+  // Stylized l (serif + italic + a bit wider) like website `.brand-l`
+  { text: "l", fontSize: SIZE_MAIN, dx: 40, family: "Times New Roman", style: "italic", stretchX: 1.2, yOffset: -4 },
+  // Pull SH back a little so spacing feels like a single wordmark
+  { text: "S", fontSize: SIZE_MAIN, dx: 6 },
+  { text: "H", fontSize: SIZE_MAIN, dx: 14 },
+  { text: ".", fontSize: SIZE_MAIN, dx: 4 },
+  { text: "ai", fontSize: SIZE_AI, dx: 12, yOffset: 8 }
 ];
 
 // Add overall letter tracking if you want more openness.
@@ -59,14 +62,18 @@ const EXTRA_TRACKING = 0;
 // HELPERS
 // --------------------
 
-function setFont(ctx, size) {
-  ctx.font = `${FONT_WEIGHT} ${size}px "${FONT_FAMILY}"`;
+function setFont(ctx, part) {
+  const size = part.fontSize;
+  const family = part.family || FONT_FAMILY;
+  const weight = part.weight || FONT_WEIGHT;
+  const style = part.style || FONT_STYLE;
+  ctx.font = `${style} ${weight} ${size}px "${family}"`;
 }
 
 function measurePart(ctx, part) {
-  setFont(ctx, part.fontSize);
-  const metrics = ctx.measureText(part.text);
-  return metrics.width;
+  setFont(ctx, part);
+  const metrics = ctx.measureText(part.text).width;
+  return metrics * (part.stretchX || 1);
 }
 
 // --------------------
@@ -100,9 +107,18 @@ for (let i = 0; i < PARTS.length; i++) {
   const part = PARTS[i];
   if (i > 0) x += part.dx + EXTRA_TRACKING;
 
-  setFont(ctx, part.fontSize);
+  setFont(ctx, part);
   const y = BASELINE_Y + (part.yOffset || 0);
-  ctx.fillText(part.text, x, y);
+  const stretchX = part.stretchX || 1;
+  if (stretchX !== 1) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(stretchX, 1);
+    ctx.fillText(part.text, 0, 0);
+    ctx.restore();
+  } else {
+    ctx.fillText(part.text, x, y);
+  }
 
   x += measurePart(ctx, part);
 }
