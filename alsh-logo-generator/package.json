@@ -1,13 +1,14 @@
 {
   "name": "alsh-logo-generator",
   "version": "1.0.0",
-  "description": "Generate a transparent AlSH.ai text logo PNG with manual spacing control",
+  "description": "Generate Explora glyph assets as SVG and PNG without canvas/pango",
   "main": "make-logo.js",
   "type": "commonjs",
   "scripts": {
     "start": "node make-logo.js"
   },
   "dependencies": {
-    "canvas": "^2.11.2"
+    "@resvg/resvg-js": "^2.6.2",
+    "opentype.js": "^1.3.4"
   }
 }

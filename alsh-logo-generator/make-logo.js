@@ -1,132 +1,64 @@
-const fs = require("fs");
+// make-logo.js
+// Generates a transparent curved L from Explora without canvas/pango.
+
+const fs = require("fs/promises");
 const path = require("path");
-const { createCanvas, registerFont, deregisterAllFonts } = require("canvas");
+const opentype = require("opentype.js");
+const { Resvg } = require("@resvg/resvg-js");
 
-const OUTPUT_FILE = "alsh-logo.png";
-const WIDTH = 2400;
-const HEIGHT = 800;
+const WIDTH = 900;
+const HEIGHT = 900;
+const FONT_SIZE = 620;
 
-const BACKGROUND = "rgba(0,0,0,0)";
-const TEXT_COLOR = "#FFFFFF";
+async function main() {
+  const fontPath = path.join(__dirname, "fonts", "Explora-Regular.ttf");
+  const fontBuffer = await fs.readFile(fontPath);
 
-const FONT_FAMILY = "Georgia";
-const FONT_WEIGHT = "700";
-const FONT_STYLE = "normal";
+  // Convert Node Buffer -> exact ArrayBuffer slice for opentype.js
+  const arrayBuffer = fontBuffer.buffer.slice(
+    fontBuffer.byteOffset,
+    fontBuffer.byteOffset + fontBuffer.byteLength
+  );
 
-const SIZE_MAIN = 320;
-const SIZE_AI = 250;
-const BASELINE_Y = 520;
+  const font = opentype.parse(arrayBuffer);
+  const glyph = font.charToGlyph("L");
 
-const LETTER_SPACING = 10;
-const DOT_TO_AI_SPACING = 14;
-const EXTRA_TRACKING = 0;
+  if (!glyph) {
+    throw new Error('Could not find glyph for "L"');
+  }
 
-const fontsDir = path.join(__dirname, "fonts");
-const exploraPath = process.env.EXPLORA_FONT_PATH || path.join(fontsDir, "Explora-Regular.ttf");
+  // Baseline placement
+  const x = 120;
+  const y = 700;
 
-// Give the custom font a unique alias so Pango/fontconfig cannot confuse it
-const EXPLORA_ALIAS = "ExploraLogoCustom";
+  const glyphPath = glyph.getPath(x, y, FONT_SIZE);
 
-deregisterAllFonts();
-
-let hasExplora = false;
-if (fs.existsSync(exploraPath)) {
-  registerFont(exploraPath, {
-    family: EXPLORA_ALIAS
+  // Build SVG path data. flipY helps convert font coordinates to SVG coords.
+  const d = glyphPath.toPathData({
+    flipY: true,
+    flipYBase: y,
+    optimize: true,
+    decimalPlaces: 2,
   });
-  hasExplora = true;
-  console.log(`Loaded custom font: ${exploraPath}`);
-} else {
-  console.warn(`Missing font file: ${exploraPath}`);
+
+  const svg = `\n    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">\n      <path d="${d}" fill="#FFFFFF"/>\n    </svg>\n  `;
+
+  await fs.writeFile(path.join(__dirname, "explora-l.svg"), svg, "utf8");
+
+  const resvg = new Resvg(svg, {
+    fitTo: {
+      mode: "original",
+    },
+    background: "rgba(0,0,0,0)",
+  });
+
+  const pngBuffer = resvg.render().asPng();
+  await fs.writeFile(path.join(__dirname, "explora-l.png"), pngBuffer);
+
+  console.log("Wrote explora-l.svg and explora-l.png");
 }
 
-const PARTS = [
-  { text: "A", fontSize: SIZE_MAIN, dx: 0 },
-  {
-    text: "L",
-    fontSize: 360,
-    dx: 28,
-    family: hasExplora ? EXPLORA_ALIAS : "Times New Roman",
-    yOffset: 10,
-    // use a raw font string for the custom L so there is less font-matching ambiguity
-    fontString: hasExplora
-        ? `360px "${EXPLORA_ALIAS}"`
-        : `normal 700 360px "Times New Roman"`
-  },
-  { text: "S", fontSize: SIZE_MAIN, dx: 18 },
-  { text: "H", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
-  { text: ".", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
-  {
-    text: "ai",
-    fontSize: SIZE_AI,
-    dx: DOT_TO_AI_SPACING,
-    yOffset: 0,
-    family: "Arial",
-    style: "normal",
-    weight: "700",
-  },
-];
-
-function setFont(ctx, part) {
-  if (part.fontString) {
-    ctx.font = part.fontString;
-    return;
-  }
-
-  const size = part.fontSize;
-  const family = part.family || FONT_FAMILY;
-  const weight = part.weight || FONT_WEIGHT;
-  const style = part.style || FONT_STYLE;
-  ctx.font = `${style} ${weight} ${size}px "${family}"`;
-}
-
-function measurePart(ctx, part) {
-  setFont(ctx, part);
-  return ctx.measureText(part.text).width * (part.stretchX || 1);
-}
-
-const canvas = createCanvas(WIDTH, HEIGHT);
-const ctx = canvas.getContext("2d");
-
-ctx.clearRect(0, 0, WIDTH, HEIGHT);
-ctx.fillStyle = BACKGROUND;
-ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-let totalWidth = 0;
-for (let i = 0; i < PARTS.length; i++) {
-  const part = PARTS[i];
-  totalWidth += measurePart(ctx, part);
-  if (i > 0) totalWidth += part.dx;
-  totalWidth += EXTRA_TRACKING;
-}
-
-let x = Math.round((WIDTH - totalWidth) / 2);
-
-ctx.fillStyle = TEXT_COLOR;
-ctx.textBaseline = "alphabetic";
-
-for (let i = 0; i < PARTS.length; i++) {
-  const part = PARTS[i];
-
-  if (i > 0) x += part.dx + EXTRA_TRACKING;
-
-  const y = BASELINE_Y + (part.yOffset || 0);
-
-  setFont(ctx, part);
-
-  const stretchX = part.stretchX || 1;
-  if (stretchX !== 1) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(stretchX, 1);
-    ctx.fillText(part.text, 0, 0);
-    ctx.restore();
-  } else {
-    ctx.fillText(part.text, x, y);
-  }
-
-  x += measurePart(ctx, part);
-}
-
-fs.writeFileSync(OUTPUT_FILE, canvas.toBuffer("image/png"));
-console.log(`Wrote ${OUTPUT_FILE}`);
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
