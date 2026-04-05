@@ -1,22 +1,6 @@
-// make-logo.js
-//
-// Generate a transparent PNG logo for: ALSH.ai
-//
-// Before running:
-// 1) Put Explora-Regular.ttf in ./fonts/ (optional but recommended)
-// 2) npm install
-// 3) node make-logo.js
-//
-// Output:
-//   ./alsh-logo.png
-
 const fs = require("fs");
 const path = require("path");
-const { createCanvas, registerFont } = require("canvas");
-
-// --------------------
-// CONFIG
-// --------------------
+const { createCanvas, registerFont, deregisterAllFonts } = require("canvas");
 
 const OUTPUT_FILE = "alsh-logo.png";
 const WIDTH = 2400;
@@ -25,7 +9,6 @@ const HEIGHT = 800;
 const BACKGROUND = "rgba(0,0,0,0)";
 const TEXT_COLOR = "#FFFFFF";
 
-// Main default font for A, S, H, .
 const FONT_FAMILY = "Georgia";
 const FONT_WEIGHT = "700";
 const FONT_STYLE = "normal";
@@ -38,87 +21,41 @@ const LETTER_SPACING = 10;
 const DOT_TO_AI_SPACING = 14;
 const EXTRA_TRACKING = 0;
 
-// --------------------
-// LOAD EXPLORA FOR THE L
-// --------------------
-
 const fontsDir = path.join(__dirname, "fonts");
-const EXPLORA_FAMILY = "Explora";
+const exploraPath = process.env.EXPLORA_FONT_PATH || path.join(fontsDir, "Explora-Regular.ttf");
 
-function resolveExploraPath() {
-  if (process.env.EXPLORA_FONT_PATH) {
-    return process.env.EXPLORA_FONT_PATH;
-  }
+// Give the custom font a unique alias so Pango/fontconfig cannot confuse it
+const EXPLORA_ALIAS = "ExploraLogoCustom";
 
-  const defaultPath = path.join(fontsDir, "Explora-Regular.ttf");
-  if (fs.existsSync(defaultPath)) {
-    return defaultPath;
-  }
+deregisterAllFonts();
 
-  if (!fs.existsSync(fontsDir)) {
-    return defaultPath;
-  }
-
-  const fontFiles = fs.readdirSync(fontsDir).filter((file) => /\.(ttf|otf)$/i.test(file));
-  const exploraLike = fontFiles.find((file) => /explor/i.test(file));
-
-  if (exploraLike) {
-    return path.join(fontsDir, exploraLike);
-  }
-
-  return defaultPath;
-}
-
-const exploraPath = resolveExploraPath();
 let hasExplora = false;
-
 if (fs.existsSync(exploraPath)) {
   registerFont(exploraPath, {
-    family: EXPLORA_FAMILY,
-    weight: "400",
-    style: "normal",
+    family: EXPLORA_ALIAS
   });
   hasExplora = true;
-  console.log(`Loaded Explora font from: ${exploraPath}`);
+  console.log(`Loaded custom font: ${exploraPath}`);
 } else {
-  console.warn(
-    [
-      `Explora font not found at: ${exploraPath}`,
-      "Using fallback font for the L.",
-      "To use Explora:",
-      "  1) Create ./fonts in alsh-logo-generator",
-      "  2) Download Explora-Regular.ttf from Google Fonts",
-      "  3) Save it as ./fonts/Explora-Regular.ttf",
-      "  4) Re-run: node make-logo.js",
-      "You can also set EXPLORA_FONT_PATH=/absolute/path/to/Explora-Regular.ttf",
-    ].join("\n")
-  );
+  console.warn(`Missing font file: ${exploraPath}`);
 }
-
-// --------------------
-// PARTS
-// --------------------
 
 const PARTS = [
   { text: "A", fontSize: SIZE_MAIN, dx: 0 },
-
-  // Curvier custom L using Explora
-  // Increased size so the thin strokes still feel substantial.
-  // Extra spacing after it so it does not crowd the S.
   {
     text: "L",
     fontSize: 360,
     dx: 28,
-    family: hasExplora ? EXPLORA_FAMILY : "Times New Roman",
-    style: "normal",
-    weight: hasExplora ? "400" : "700",
+    family: hasExplora ? EXPLORA_ALIAS : "Times New Roman",
     yOffset: 10,
+    // use a raw font string for the custom L so there is less font-matching ambiguity
+    fontString: hasExplora
+        ? `360px "${EXPLORA_ALIAS}"`
+        : `normal 700 360px "Times New Roman"`
   },
-
   { text: "S", fontSize: SIZE_MAIN, dx: 18 },
   { text: "H", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
   { text: ".", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
-
   {
     text: "ai",
     fontSize: SIZE_AI,
@@ -130,11 +67,12 @@ const PARTS = [
   },
 ];
 
-// --------------------
-// HELPERS
-// --------------------
-
 function setFont(ctx, part) {
+  if (part.fontString) {
+    ctx.font = part.fontString;
+    return;
+  }
+
   const size = part.fontSize;
   const family = part.family || FONT_FAMILY;
   const weight = part.weight || FONT_WEIGHT;
@@ -144,13 +82,8 @@ function setFont(ctx, part) {
 
 function measurePart(ctx, part) {
   setFont(ctx, part);
-  const width = ctx.measureText(part.text).width;
-  return width * (part.stretchX || 1);
+  return ctx.measureText(part.text).width * (part.stretchX || 1);
 }
-
-// --------------------
-// DRAW
-// --------------------
 
 const canvas = createCanvas(WIDTH, HEIGHT);
 const ctx = canvas.getContext("2d");
@@ -159,7 +92,6 @@ ctx.clearRect(0, 0, WIDTH, HEIGHT);
 ctx.fillStyle = BACKGROUND;
 ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-// Measure total width for centering
 let totalWidth = 0;
 for (let i = 0; i < PARTS.length; i++) {
   const part = PARTS[i];
@@ -170,16 +102,13 @@ for (let i = 0; i < PARTS.length; i++) {
 
 let x = Math.round((WIDTH - totalWidth) / 2);
 
-// Draw text
 ctx.fillStyle = TEXT_COLOR;
 ctx.textBaseline = "alphabetic";
 
 for (let i = 0; i < PARTS.length; i++) {
   const part = PARTS[i];
 
-  if (i > 0) {
-    x += part.dx + EXTRA_TRACKING;
-  }
+  if (i > 0) x += part.dx + EXTRA_TRACKING;
 
   const y = BASELINE_Y + (part.yOffset || 0);
 
@@ -199,8 +128,5 @@ for (let i = 0; i < PARTS.length; i++) {
   x += measurePart(ctx, part);
 }
 
-// Save PNG
-const buffer = canvas.toBuffer("image/png");
-fs.writeFileSync(OUTPUT_FILE, buffer);
-
+fs.writeFileSync(OUTPUT_FILE, canvas.toBuffer("image/png"));
 console.log(`Wrote ${OUTPUT_FILE}`);
