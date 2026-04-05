@@ -5,7 +5,7 @@ const tls = require('tls');
 const path = require('path');
 
 const ROOT_DIR = __dirname;
-const HTTP_PORT = 80;
+const HTTP_PORT = resolveHttpPort(process.argv.slice(2));
 const HTTPS_PORT = 443;
 
 const TLS_CERTIFICATES = [
@@ -171,4 +171,26 @@ function decodeRequestPath(rawUrl) {
   } catch {
     return null;
   }
+}
+
+function resolveHttpPort(argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+
+    if (arg !== '-p' && arg !== '--port') {
+      continue;
+    }
+
+    const value = argv[index + 1];
+    const port = Number(value);
+
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      console.error(`Invalid port value for ${arg}: ${value}`);
+      process.exit(1);
+    }
+
+    return port;
+  }
+
+  return 80;
 }
