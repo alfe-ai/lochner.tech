@@ -43,16 +43,18 @@ const SIZE_AI = 250;
 const BASELINE_Y = 520;
 
 // Manual character spacing.
-// This is the whole point: move the `l` farther right from the `S`.
+// Keep spacing consistent across the wordmark so no pair feels too tight/wide.
+const LETTER_SPACING = 14;
+const DOT_TO_AI_SPACING = 14;
+
 const PARTS = [
   { text: "A", fontSize: SIZE_MAIN, dx: 0 },
   // Stylized l (serif + italic + a bit wider) like website `.brand-l`
-  { text: "l", fontSize: SIZE_MAIN, dx: 40, family: "Times New Roman", style: "italic", stretchX: 1.2, yOffset: -4 },
-  // Pull SH back a little so spacing feels like a single wordmark
-  { text: "S", fontSize: SIZE_MAIN, dx: 6 },
-  { text: "H", fontSize: SIZE_MAIN, dx: 14 },
-  { text: ".", fontSize: SIZE_MAIN, dx: 4 },
-  { text: "ai", fontSize: SIZE_AI, dx: 12, yOffset: 8 }
+  { text: "l", fontSize: SIZE_MAIN, dx: LETTER_SPACING, family: "Times New Roman", style: "italic", stretchX: 1.2, yOffset: -4 },
+  { text: "S", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
+  { text: "H", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
+  { text: ".", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
+  { text: "ai", fontSize: SIZE_AI, dx: DOT_TO_AI_SPACING, yOffset: 8 }
 ];
 
 // Add overall letter tracking if you want more openness.
