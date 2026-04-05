@@ -26,10 +26,24 @@ const HEIGHT = 800;
 const BACKGROUND = "rgba(0,0,0,0)";
 const TEXT_COLOR = "#FFFFFF";
 
-// Pick a font you actually have.
-// If you have a brand font file, put it next to this script and uncomment registerFont.
-// registerFont("./YourBrandFont.ttf", { family: "BrandFont" });
-// const FONT_FAMILY = "BrandFont";
+// Decorative "L" font (preferred):
+// Put the font file in ./fonts/
+// Example: ./fonts/CormorantGaramond-SemiBoldItalic.ttf
+const DECORATIVE_L_FONT_PATH = "./fonts/CormorantGaramond-SemiBoldItalic.ttf";
+const DECORATIVE_L_FAMILY = "Cormorant Garamond";
+const HAS_DECORATIVE_L_FONT = fs.existsSync(DECORATIVE_L_FONT_PATH);
+
+if (HAS_DECORATIVE_L_FONT) {
+  registerFont(DECORATIVE_L_FONT_PATH, {
+    family: DECORATIVE_L_FAMILY,
+    weight: "600",
+    style: "italic"
+  });
+} else {
+  console.warn(
+    `[warn] Missing ${DECORATIVE_L_FONT_PATH}; using fallback italic serif for "L".`
+  );
+}
 
 const FONT_FAMILY = "Georgia";
 const FONT_WEIGHT = "700";
@@ -48,8 +62,15 @@ const DOT_TO_AI_SPACING = 14;
 
 const PARTS = [
   { text: "A", fontSize: SIZE_MAIN, dx: 0 },
-  // Use a curvy italic uppercase "L" to better match the original mark.
-  { text: "L", fontSize: 340, dx: LETTER_SPACING, family: "Palatino Linotype", style: "italic" },
+  // Swap only the "L" to a decorative display serif.
+  {
+    text: "L",
+    fontSize: 350,
+    dx: 22,
+    family: HAS_DECORATIVE_L_FONT ? DECORATIVE_L_FAMILY : "Palatino Linotype",
+    style: "italic",
+    weight: "600"
+  },
   { text: "S", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
   { text: "H", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
   { text: ".", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
