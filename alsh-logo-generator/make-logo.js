@@ -48,8 +48,8 @@ const DOT_TO_AI_SPACING = 14;
 
 const PARTS = [
   { text: "A", fontSize: SIZE_MAIN, dx: 0 },
-  // Use a real uppercase "L" glyph from a curved serif italic face.
-  { text: "L", fontSize: SIZE_MAIN, dx: LETTER_SPACING, family: "Times New Roman", style: "italic" },
+  // Use a curvy italic uppercase "L" to better match the original mark.
+  { text: "L", fontSize: 340, dx: LETTER_SPACING, family: "Palatino Linotype", style: "italic" },
   { text: "S", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
   { text: "H", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
   { text: ".", fontSize: SIZE_MAIN, dx: LETTER_SPACING },
