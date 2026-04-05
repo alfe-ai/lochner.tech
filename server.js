@@ -21,24 +21,33 @@ const TLS_CERTIFICATES = [
   },
 ];
 
-const tlsContexts = TLS_CERTIFICATES.map(({ servername, keyPath, certPath }) => {
+const tlsContexts = TLS_CERTIFICATES.flatMap(({ servername, keyPath, certPath }) => {
+  if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+    console.error('='.repeat(92));
+    console.error(
+      `!!! LOUD WARNING: TLS CERTIFICATE MISSING FOR ${servername.toUpperCase()} !!!`
+    );
+    console.error(`Missing key path:  ${keyPath}`);
+    console.error(`Missing cert path: ${certPath}`);
+    console.error('HTTPS for this host is DISABLED until the certificate files exist.');
+    console.error('='.repeat(92));
+    return [];
+  }
+
   const key = fs.readFileSync(keyPath);
   const cert = fs.readFileSync(certPath);
 
-  return {
-    servername,
-    context: tls.createSecureContext({ key, cert }),
-    key,
-    cert,
-  };
+  return [
+    {
+      servername,
+      context: tls.createSecureContext({ key, cert }),
+      key,
+      cert,
+    },
+  ];
 });
 
-if (tlsContexts.length === 0) {
-  console.error('No TLS certificates configured.');
-  process.exit(1);
-}
-
-const defaultTlsContext = tlsContexts[0];
+const defaultTlsContext = tlsContexts[0] || null;
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -95,40 +104,50 @@ const requestHandler = (req, res) => {
   });
 };
 
-http
-  .createServer((req, res) => {
-    const host = req.headers.host || 'lochner.tech';
-    const redirectUrl = `https://${host}${req.url || '/'}`;
+if (defaultTlsContext) {
+  http
+    .createServer((req, res) => {
+      const host = req.headers.host || 'lochner.tech';
+      const redirectUrl = `https://${host}${req.url || '/'}`;
 
-    res.writeHead(301, {
-      Location: redirectUrl,
-      'Content-Type': 'text/plain; charset=utf-8',
+      res.writeHead(301, {
+        Location: redirectUrl,
+        'Content-Type': 'text/plain; charset=utf-8',
+      });
+      res.end(`Redirecting to ${redirectUrl}`);
+    })
+    .listen(HTTP_PORT, () => {
+      console.log(`HTTP redirect server listening on port ${HTTP_PORT}`);
     });
-    res.end(`Redirecting to ${redirectUrl}`);
-  })
-  .listen(HTTP_PORT, () => {
-    console.log(`HTTP redirect server listening on port ${HTTP_PORT}`);
+
+  const httpsOptions = {
+    key: defaultTlsContext.key,
+    cert: defaultTlsContext.cert,
+    SNICallback(servername, cb) {
+      const match = tlsContexts.find((tlsContext) => tlsContext.servername === servername);
+      const context = match ? match.context : defaultTlsContext.context;
+
+      if (cb) {
+        cb(null, context);
+        return;
+      }
+
+      return context;
+    },
+  };
+
+  https.createServer(httpsOptions, requestHandler).listen(HTTPS_PORT, () => {
+    console.log(`HTTPS server listening on port ${HTTPS_PORT}`);
   });
-
-const httpsOptions = {
-  key: defaultTlsContext.key,
-  cert: defaultTlsContext.cert,
-  SNICallback(servername, cb) {
-    const match = tlsContexts.find((tlsContext) => tlsContext.servername === servername);
-    const context = match ? match.context : defaultTlsContext.context;
-
-    if (cb) {
-      cb(null, context);
-      return;
-    }
-
-    return context;
-  },
-};
-
-https.createServer(httpsOptions, requestHandler).listen(HTTPS_PORT, () => {
-  console.log(`HTTPS server listening on port ${HTTPS_PORT}`);
-});
+} else {
+  console.error('='.repeat(92));
+  console.error('!!! LOUD WARNING: NO TLS CERTIFICATES FOUND. SERVING HTTP ONLY. !!!');
+  console.error('HTTPS is DISABLED until certificate files are present.');
+  console.error('='.repeat(92));
+  http.createServer(requestHandler).listen(HTTP_PORT, () => {
+    console.log(`HTTP server listening on port ${HTTP_PORT}`);
+  });
+}
 
 function respond404(res) {
   const fallbackPage = path.join(ROOT_DIR, '50x.html');
