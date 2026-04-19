@@ -73,33 +73,33 @@ const mimeTypes = {
 const SHARED_HEADER_TEMPLATE = `
   <header class="site-header">
     <h1><a class="site-title-link" href="/">Lochner Technology</a></h1>
-    <p>Lochner Technology builds developer software and AI-assisted workflow tools.</p>
+    <p>Lochner Technology builds AI development software and operates Lochner Apparel as a commerce business unit.</p>
     <div class="cta-buttons">
-      <a class="cta-button" href="https://www.linkedin.com/in/nicholaslochner/" target="_blank" rel="noopener" title="Open LinkedIn profile">
-        LinkedIn
+      <a class="cta-button" href="/alsh.ai.html" title="Explore ALSH.ai">
+        Explore ALSH.ai
       </a>
-      <a class="cta-button" href="https://www.freelancer.com/hireme/nlochner" target="_blank" rel="noopener" title="Open Freelancer profile">
-        Freelancer.com
+      <a class="cta-button" href="/lochner-apparel.html" title="Explore Lochner Apparel">
+        Explore Lochner Apparel
       </a>
       <a class="cta-button" href="https://github.com/lochner-lw" target="_blank" rel="noopener" title="Open GitHub profile">
-        GitHub
+        Open-source on GitHub
         <span class="cta-button-icon" aria-hidden="true">
           <svg viewBox="0 0 16 16" focusable="false">
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.49 7.49 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path>
           </svg>
         </span>
       </a>
-      <a class="cta-button" href="https://www.npmjs.com/~lochner-lw" target="_blank" rel="noopener" title="Open npm profile">
-        NPM
-      </a>
     </div>
-    <p class="banner-email"><a href="mailto:hello@lochner.tech">hello@lochner.tech</a></p>
+    <p class="banner-email">Business inquiries: <a href="mailto:hello@lochner.tech">hello@lochner.tech</a></p>
+    <p class="banner-email">Hiring & recruiting: <a href="mailto:hello@lochner.tech">hello@lochner.tech</a></p>
   </header>
 `;
 
 const SHARED_FOOTER_TEMPLATE = `
   <footer class="site-footer">
     <small>© ${COPYRIGHT_YEAR} Lochner Technology · Minneapolis, MN</small>
+    <br>
+    <small>Lochner Technology (Software) • Lochner Apparel (Commerce)</small>
   </footer>
 `;
 
